@@ -21,3 +21,8 @@ install_manifest.txt
 build
 
 *.class
+
+# vim files
+*~
+*.swp
+*.swo
