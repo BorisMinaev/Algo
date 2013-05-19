@@ -40,8 +40,8 @@ void split(pitem t, int key, pitem & l, pitem & r) {
 	}
 }
 
-void insert(pitem & t, pitem new_item) {
-	if (contains(t, new_item->key))
+void insert(pitem & t, pitem new_item, bool check = true) {
+	if (check && contains(t, new_item->key))
 		return;
 	if (!t) {
 		t = new_item;
@@ -52,8 +52,8 @@ void insert(pitem & t, pitem new_item) {
 		t = new_item;
 	} else {
 		if (new_item->key < t->key)
-			insert(t->l, new_item); else
-			insert(t->r, new_item);
+			insert(t->l, new_item, false); else
+			insert(t->r, new_item, false);
 	}
 }
 
@@ -102,8 +102,8 @@ bool test() {
 		if (exist_my_algo != exist_std_set)
 			return false;
 	}
-	for (int i = 0; i < 100000; i++) {
-		int val = rand() % 300;
+	for (int i = 0; i < 1000000; i++) {
+		int val = i % 2 == 0 ? -i : i;
 		if (rand() % 2 == 0) {
 			// insert
 			std_set.insert(val);
