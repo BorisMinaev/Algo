@@ -142,6 +142,7 @@ void remove(pitem & t, int val, bool check = true) {
    if (check && !contains(t, val))
       return;
    if (t->is_leaf) {
+      delete t;
       t = NULL;
    } else {
       if (t->key >= val) {
