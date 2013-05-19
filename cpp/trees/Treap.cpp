@@ -8,42 +8,96 @@ struct treap_item {
 	int key;
 	int prior;
 	treap_item * l, * r;
-	set<int> ss;
 	treap_item() {};
 	treap_item(int key, int prior) : key(key), prior(prior), l (NULL), r (NULL) {};
 };
 
 typedef treap_item * pitem;
 
-void insert(pitem t, int val) {
-	if (!t)
-		return;
-	t->ss.insert(val);
-}
-
-void remove(pitem t, int val) {
-	if (!t)
-		return;
-	t->ss.erase(val);
-}
-
 bool contains(pitem t, int val) {
 	if (!t)
 		return false;
-	return t->ss.find(val) != t->ss.end();
+	if (t->key == val)
+		return true;
+	if (t->key > val)
+		return contains(t->l, val);
+	return contains(t->r, val);
+}
+
+// >= -> right
+// < -> left
+void split(pitem t, int key, pitem & l, pitem & r) {
+	if (!t) {
+		l = r = NULL;
+	} else {
+		if (key < t->key) {
+			split(t -> l, key, l, t->l);
+			r = t;
+		} else {
+			split(t -> r, key, t->r, r);
+			l = t;
+		}
+	}
+}
+
+void insert(pitem & t, pitem new_item) {
+	if (contains(t, new_item->key))
+		return;
+	if (!t) {
+		t = new_item;
+		return;
+	}
+	if (new_item->prior > t->prior) {
+		split(t, new_item->key, new_item->l, new_item->r);
+		t = new_item;
+	} else {
+		if (new_item->key < t->key)
+			insert(t->l, new_item); else
+			insert(t->r, new_item);
+	}
+}
+
+void merge(pitem & t, pitem l, pitem r) {
+	if (!l || !r) {
+		if (!l) {
+			t = r;
+		} else {
+			t = l;
+		}
+	} else {
+		if (l->prior > r->prior) {
+			merge(l->r, l->r, r);
+			t = l;
+		} else {
+			merge(r->l, l, r->l);
+			t = r;
+		}
+	}
+}
+
+void remove(pitem & t, int val) {
+	if (!t)
+		return;
+	if (t->key == val) {
+		merge(t, t->l, t->r);
+	} else {
+		if (t->key > val)
+			remove(t->l, val); else
+			remove(t->r, val);
+	}
 }
 
 bool test() {
-	treap_item root;
+	pitem root = NULL;
 	set<int> std_set;
 	for (int i = 0; i < 100; i++) {
 		if (i % 2 == 0) {
 			std_set.insert(i);
-			insert(&root, i);
+			insert(root, new treap_item(i, rand()));
 		}
 	}
 	for (int i =0; i < 100; i++) {
-		bool exist_my_algo = contains(&root, i);
+		bool exist_my_algo = contains(root, i);
 		bool exist_std_set = (std_set.find(i) != std_set.end());
 		if (exist_my_algo != exist_std_set)
 			return false;
@@ -53,15 +107,15 @@ bool test() {
 		if (rand() % 2 == 0) {
 			// insert
 			std_set.insert(val);
-			insert(&root, val);
+			insert(root, new treap_item(val, rand()));
 		} else {
 			if (rand() % 2== 0) {
 				// remove
 				std_set.erase(val);
-				remove(&root, val);
+				remove(root, val);
 			} else {
 				// check
-				bool exist_my_algo = contains(&root, val);
+				bool exist_my_algo = contains(root, val);
 				bool exist_std_set = (std_set.find(val) != std_set.end());
 				if (exist_my_algo != exist_std_set)
 					return false;
@@ -79,5 +133,4 @@ int main() {
 	} else {
 		cout << "all tests passed" << endl;
 	}
-
 }
